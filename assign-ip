@@ -3,6 +3,7 @@
 import json
 import os
 import sys
+import time
 import urllib2
 
 api_base = 'https://api.digitalocean.com/v2'
@@ -29,12 +30,41 @@ def main(floating_ip, droplet_id):
     if 'message' in result:
         print('{0}: {1}'.format(result['id'], result['message']))
         sys.exit(1)
-    else:
-        print('Moving IP address: {0}'.format(result['action']['status']))
+
+    print('Moving IP address: {0}'.format(result['action']['status']))
+
+    action_id = result['action']['id']
+    start_time = int(time.time())
+    interval = int(os.environ['DO_INTERVAL'])
+    timeout = int(os.environ['DO_TIMEOUT'])
+
+    while True:
+        current_time = int(time.time())
+        if current_time - start_time > timeout:
+            print('Action timeout')
+            sys.exit(1)
+
+        print('Polling')
+
+        url = api_base + '/floating_ips/{0}/actions/{1}'.format(
+            floating_ip, action_id)
+
+        request = urllib2.Request(url, headers=headers)
+        response = urllib2.urlopen(request)
+
+        result = json.loads(response.read().decode('utf8'))
+        if result['action']['status'] == 'completed':
+            break
+
+        if result['action']['status'] == 'errored':
+            print('Action errored')
+            sys.exit(1)
+
+        time.sleep(interval)
 
 if __name__ == '__main__':
     if 'DO_TOKEN' not in os.environ or not len(sys.argv) > 2:
         usage()
-        sys.exit()
+        sys.exit(1)
 
     main(sys.argv[1], sys.argv[2])
