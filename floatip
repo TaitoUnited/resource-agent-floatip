@@ -42,7 +42,7 @@ END
 }
 
 if [ "start" == "$param" ] ; then
-  python /usr/local/bin/assign-ip $IP $ID
+  python /usr/bin/assign-ip $IP $ID
   exit 0
 elif [ "stop" == "$param" ] ; then
   exit 0
