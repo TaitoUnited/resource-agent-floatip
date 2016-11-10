@@ -45,6 +45,7 @@ if [ "start" == "$param" ] ; then
   python /usr/bin/assign-ip $IP $ID
   exit 0
 elif [ "stop" == "$param" ] ; then
+  python /usr/bin/unassign-ip $IP
   exit 0
 elif [ "status" == "$param" ] ; then
   if "$HAS_FLOATING_IP" ; then
