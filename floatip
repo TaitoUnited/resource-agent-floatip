@@ -8,7 +8,6 @@ export DO_TIMEOUT="$OCF_RESKEY_timeout"
 
 IP="$OCF_RESKEY_floating_ip"
 ID="$(curl -s http://169.254.169.254/metadata/v1/id)"
-HAS_FLOATING_IP="$(curl -s http://169.254.169.254/metadata/v1/floating_ip/ipv4/active)"
 
 meta_data() {
   cat <<END
@@ -65,7 +64,8 @@ elif [ "stop" == "$param" ] ; then
   python /usr/bin/unassign-ip $IP
   exit 0
 elif [ "status" == "$param" ] ; then
-  if "$HAS_FLOATING_IP" ; then
+  HAS_FLOATING_IP=$(curl -s http://169.254.169.254/metadata/v1/floating_ip/ipv4/active)
+  if [ $HAS_FLOATING_IP = "true" ] ; then
     echo "Has Floating IP"
     exit 0
   else
@@ -73,7 +73,8 @@ elif [ "status" == "$param" ] ; then
     exit 1
   fi
 elif [ "monitor" == "$param" ] ; then
-  if $HAS_FLOATING_IP ; then
+  HAS_FLOATING_IP=$(curl -s http://169.254.169.254/metadata/v1/floating_ip/ipv4/active)
+  if [ $HAS_FLOATING_IP = "true" ] ; then
     exit 0
   else
     exit 7
